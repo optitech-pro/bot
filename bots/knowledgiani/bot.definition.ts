@@ -1,41 +1,44 @@
 import * as sdk from '@botpress/sdk'
 import * as env from './.genenv'
-import knowledge from './bp_modules/knowledge'
-import openai from './bp_modules/openai'
-import personality from './bp_modules/personality'
 import telegram from './bp_modules/telegram'
 
-type OpenAiModel = sdk.z.infer<typeof openai.definition.entities.modelRef.schema>
+/**
+ * Knowledgiani Bot Definition
+ *
+ * RAG logic has been moved from the knowledge plugin to src/index.ts
+ * to enable deployment on workspaces that do not support plugin deployment.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * IMPLEMENTATION REVIEW (Feb 2026):
+ * ─────────────────────────────────────────────────────────────────────────────────
+ *
+ * ✅ NO DEPENDENCY ON CUSTOM KNOWLEDGE PLUGIN
+ *    - package.json: No @botpresshub/knowledge dependency
+ *    - bpDependencies: Only telegram integration
+ *    - bot.definition.ts: No .addPlugin(knowledge, ...) call
+ *
+ * ✅ BOT RUNS WITH ONLY OFFICIAL INTEGRATIONS
+ *    - telegram: Official Botpress integration for messaging
+ *    - No custom plugins required for deployment
+ *
+ * ✅ AI CALLS GO THROUGH NVIDIA API (BYOK)
+ *    - src/index.ts uses direct NVIDIA API calls (OpenAI-compatible)
+ *    - Primary model: meta/llama-3.1-405b-instruct
+ *    - User provides their own NVIDIA API key
+ *
+ * ✅ RAG USES ONLY client.searchFiles()
+ *    - src/index.ts: await client.searchFiles({ query })
+ *    - No custom vector DB, embedding service, or RAG pipeline
+ *    - Uses Botpress Cloud's built-in file search API
+ *
+ * NOTE: OpenAI integration removed - using NVIDIA API directly (BYOK model)
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
 
 export default new sdk.BotDefinition({})
   .addIntegration(telegram, {
     enabled: true,
     configuration: {
       botToken: env.KNOWLEDGIANI_TELEGRAM_BOT_TOKEN,
-    },
-  })
-  .addIntegration(openai, {
-    enabled: true,
-    configuration: {},
-  })
-  .addPlugin(personality, {
-    configuration: {
-      model: 'gpt-3.5-turbo-0125' satisfies OpenAiModel['id'],
-      personality: 'Respond as if you were Mario the famous video game character of Nintendo',
-    },
-    dependencies: {
-      llm: {
-        integrationAlias: 'openai',
-        integrationInterfaceAlias: 'llm<modelRef>',
-      },
-    },
-  })
-  .addPlugin(knowledge, {
-    configuration: {},
-    dependencies: {
-      llm: {
-        integrationAlias: 'openai',
-        integrationInterfaceAlias: 'llm<modelRef>',
-      },
     },
   })

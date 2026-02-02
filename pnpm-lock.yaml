@@ -298,19 +298,16 @@ importers:
       '@botpress/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
+      json5:
+        specifier: ^2.2.3
+        version: 2.2.3
+      jsonrepair:
+        specifier: ^3.8.0
+        version: 3.10.0
     devDependencies:
       '@botpress/common':
         specifier: workspace:*
         version: link:../../packages/common
-      '@botpresshub/knowledge':
-        specifier: workspace:*
-        version: link:../../plugins/knowledge
-      '@botpresshub/openai':
-        specifier: workspace:*
-        version: link:../../integrations/openai
-      '@botpresshub/personality':
-        specifier: workspace:*
-        version: link:../../plugins/personality
       '@botpresshub/telegram':
         specifier: workspace:*
         version: link:../../integrations/telegram

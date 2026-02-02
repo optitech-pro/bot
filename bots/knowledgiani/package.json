@@ -2,7 +2,7 @@
   "name": "@bp-bots/knowledgiani",
   "private": true,
   "scripts": {
-    "postinstall": "genenv -o ./.genenv/index.ts -e KNOWLEDGIANI_TELEGRAM_BOT_TOKEN",
+    "postinstall": "genenv -o ./.genenv/index.ts -e KNOWLEDGIANI_TELEGRAM_BOT_TOKEN -e NVIDIA_API_KEY",
     "check:type": "tsc --noEmit",
     "check:bplint": "bp lint",
     "build": "bp add -y && bp build"
@@ -10,24 +10,20 @@
   "dependencies": {
     "@botpress/cli": "workspace:*",
     "@botpress/client": "workspace:*",
-    "@botpress/sdk": "workspace:*"
+    "@botpress/sdk": "workspace:*",
+    "json5": "^2.2.3",
+    "jsonrepair": "^3.8.0"
   },
   "devDependencies": {
     "@botpress/cli": "workspace:*",
     "@botpress/common": "workspace:*",
     "@botpress/sdk": "workspace:*",
-    "@botpresshub/knowledge": "workspace:*",
-    "@botpresshub/openai": "workspace:*",
-    "@botpresshub/personality": "workspace:*",
     "@botpresshub/telegram": "workspace:*",
     "@bpinternal/genenv": "0.0.1",
     "@types/json-schema": "^7.0.12",
     "@types/qs": "^6.9.7"
   },
   "bpDependencies": {
-    "telegram": "../../integrations/telegram",
-    "openai": "../../integrations/openai",
-    "personality": "../../plugins/personality",
-    "knowledge": "../../plugins/knowledge"
+    "telegram": "../../integrations/telegram"
   }
 }
