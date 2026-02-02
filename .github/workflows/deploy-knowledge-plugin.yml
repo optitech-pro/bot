@@ -43,9 +43,10 @@ jobs:
         working-directory: plugins/knowledge
         run: |
           if [ "${{ steps.check.outputs.exists }}" = "0" ] || [ "${{ inputs.force }}" = "true" ]; then
-            echo "Deploying knowledge plugin to ${{ inputs.environment }}..."
-            pnpm bp deploy -v -y --visibility public
+            echo "Deploying knowledge plugin..."
+            pnpm bp deploy -v -y
           else
             echo "Knowledge plugin already deployed with this version. Use force=true to redeploy."
             exit 0
+          fi
           fi
