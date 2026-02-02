@@ -1,0 +1,72 @@
+name: Deploy Knowledge Plugin
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        type: choice
+        required: true
+        options:
+          - staging
+          - production
+        default: staging
+      force:
+        description: 'Force re-deploy even if version unchanged'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-knowledge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
+      - name: Set environment variables
+        id: env
+        run: |
+          if [ "${{ inputs.environment }}" = "staging" ]; then
+            echo "api_url=https://api.botpress.dev" >> $GITHUB_OUTPUT
+            echo "token_secret=STAGING_TOKEN_CLOUD_OPS_ACCOUNT" >> $GITHUB_OUTPUT
+            echo "workspace_secret=STAGING_CLOUD_OPS_WORKSPACE_ID" >> $GITHUB_OUTPUT
+          else
+            echo "api_url=https://api.botpress.cloud" >> $GITHUB_OUTPUT
+            echo "token_secret=PRODUCTION_TOKEN_CLOUD_OPS_ACCOUNT" >> $GITHUB_OUTPUT
+            echo "workspace_secret=PRODUCTION_CLOUD_OPS_WORKSPACE_ID" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Login to Botpress
+        run: |
+          pnpm bp login -y \
+            --api-url ${{ steps.env.outputs.api_url }} \
+            --workspaceId "${{ secrets[steps.env.outputs.workspace_secret] }}" \
+            --token "${{ secrets[steps.env.outputs.token_secret] }}"
+
+      - name: Build knowledge plugin
+        run: pnpm --filter '@botpresshub/knowledge' build
+
+      - name: Check if plugin exists
+        id: check
+        run: |
+          exists=$(./.github/scripts/plugin-exists.sh knowledge)
+          echo "exists=$exists" >> $GITHUB_OUTPUT
+
+      - name: Deploy knowledge plugin
+        working-directory: plugins/knowledge
+        run: |
+          if [ "${{ steps.check.outputs.exists }}" = "0" ] || [ "${{ inputs.force }}" = "true" ]; then
+            echo "Deploying knowledge plugin to ${{ inputs.environment }}..."
+            pnpm bp deploy -v -y --visibility public
+          else
+            echo "Knowledge plugin already deployed with this version. Use force=true to redeploy."
+            exit 0
+          fi
