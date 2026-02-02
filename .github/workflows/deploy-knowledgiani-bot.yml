@@ -20,33 +20,21 @@ env:
 jobs:
   deploy-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10.12.4
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup
+        uses: ./.github/actions/setup
 
       - name: Login to Botpress
         run: |
-          npx @botpress/cli@latest login -y \
+          pnpm bp login -y \
             --api-url https://api.botpress.cloud \
             --workspaceId "${{ secrets.PRODUCTION_CLOUD_OPS_WORKSPACE_ID }}" \
             --token "${{ secrets.PRODUCTION_TOKEN_CLOUD_OPS_ACCOUNT }}"
 
-      - name: Build knowledgiani bot
-        run: pnpm --filter '@bp-bots/knowledgiani...' build
-
       - name: Deploy knowledgiani bot
-        working-directory: bots/knowledgiani
-        run: npx @botpress/cli@latest deploy -v -y
+        run: |
+          bot_id=$(pnpm bp bots new --name knowledgiani --json --if-not-exists | jq -r ".id")
+          pnpm -F @bp-bots/knowledgiani -c exec -- "pnpm bp deploy -v -y --botId $bot_id"
