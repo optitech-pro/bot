@@ -1,0 +1,52 @@
+name: Deploy Knowledgiani Bot
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force re-deploy even if version unchanged'
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+  KNOWLEDGIANI_TELEGRAM_BOT_TOKEN: ${{ secrets.KNOWLEDGIANI_TELEGRAM_BOT_TOKEN }}
+
+jobs:
+  deploy-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Login to Botpress
+        run: |
+          pnpm bp login -y \
+            --api-url https://api.botpress.cloud \
+            --workspaceId "${{ secrets.PRODUCTION_CLOUD_OPS_WORKSPACE_ID }}" \
+            --token "${{ secrets.PRODUCTION_TOKEN_CLOUD_OPS_ACCOUNT }}"
+
+      - name: Build knowledgiani bot
+        run: pnpm --filter '@bp-bots/knowledgiani' build
+
+      - name: Deploy knowledgiani bot
+        working-directory: bots/knowledgiani
+        run: pnpm bp deploy -v -y
