@@ -37,19 +37,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build CLI
-        run: pnpm --filter '@botpress/cli...' build
-
       - name: Login to Botpress
         run: |
-          pnpm bp login -y \
+          pnpm dlx @botpress/cli login -y \
             --api-url https://api.botpress.cloud \
             --workspaceId "${{ secrets.PRODUCTION_CLOUD_OPS_WORKSPACE_ID }}" \
             --token "${{ secrets.PRODUCTION_TOKEN_CLOUD_OPS_ACCOUNT }}"
 
       - name: Build knowledgiani bot
-        run: pnpm --filter '@bp-bots/knowledgiani' build
+        run: pnpm --filter '@bp-bots/knowledgiani...' build
 
       - name: Deploy knowledgiani bot
         working-directory: bots/knowledgiani
-        run: pnpm bp deploy -v -y
+        run: pnpm dlx @botpress/cli deploy -v -y
