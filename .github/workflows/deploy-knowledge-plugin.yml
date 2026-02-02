@@ -3,14 +3,6 @@ name: Deploy Knowledge Plugin
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Environment to deploy to'
-        type: choice
-        required: true
-        options:
-          - staging
-          - production
-        default: staging
       force:
         description: 'Force re-deploy even if version unchanged'
         type: boolean
@@ -31,25 +23,12 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Set environment variables
-        id: env
-        run: |
-          if [ "${{ inputs.environment }}" = "staging" ]; then
-            echo "api_url=https://api.botpress.dev" >> $GITHUB_OUTPUT
-            echo "token_secret=STAGING_TOKEN_CLOUD_OPS_ACCOUNT" >> $GITHUB_OUTPUT
-            echo "workspace_secret=STAGING_CLOUD_OPS_WORKSPACE_ID" >> $GITHUB_OUTPUT
-          else
-            echo "api_url=https://api.botpress.cloud" >> $GITHUB_OUTPUT
-            echo "token_secret=PRODUCTION_TOKEN_CLOUD_OPS_ACCOUNT" >> $GITHUB_OUTPUT
-            echo "workspace_secret=PRODUCTION_CLOUD_OPS_WORKSPACE_ID" >> $GITHUB_OUTPUT
-          fi
-
       - name: Login to Botpress
         run: |
           pnpm bp login -y \
-            --api-url ${{ steps.env.outputs.api_url }} \
-            --workspaceId "${{ secrets[steps.env.outputs.workspace_secret] }}" \
-            --token "${{ secrets[steps.env.outputs.token_secret] }}"
+            --api-url https://api.botpress.cloud \
+            --workspaceId "${{ secrets.PRODUCTION_CLOUD_OPS_WORKSPACE_ID }}" \
+            --token "${{ secrets.PRODUCTION_TOKEN_CLOUD_OPS_ACCOUNT }}"
 
       - name: Build knowledge plugin
         run: pnpm --filter '@botpresshub/knowledge' build
