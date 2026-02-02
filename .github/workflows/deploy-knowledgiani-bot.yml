@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build CLI
+        run: pnpm --filter '@botpress/cli...' build
+
       - name: Login to Botpress
         run: |
           pnpm bp login -y \
